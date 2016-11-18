@@ -1,0 +1,288 @@
+ind_ahor_fin_ult1
+[[5255183 1244252]
+ [    134     431]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.81      0.89   6499435
+          1       0.00      0.76      0.00       565
+
+avg / total       1.00      0.81      0.89   6500000
+
+True positive rate is: 0.762831858407
+--------
+ind_aval_fin_ult1
+[[5738381  761503]
+ [     21      95]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.88      0.94   6499884
+          1       0.00      0.82      0.00       116
+
+avg / total       1.00      0.88      0.94   6500000
+
+True positive rate is: 0.818965517241
+--------
+ind_cco_fin_ult1
+[[1195518 1352810]
+ [1294267 2657405]]
+             precision    recall  f1-score   support
+
+          0       0.48      0.47      0.47   2548328
+          1       0.66      0.67      0.67   3951672
+
+avg / total       0.59      0.59      0.59   6500000
+
+True positive rate is: 0.672476106317
+--------
+ind_cder_fin_ult1
+[[5186139 1311538]
+ [    235    2088]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.80      0.89   6497677
+          1       0.00      0.90      0.00      2323
+
+avg / total       1.00      0.80      0.89   6500000
+
+True positive rate is: 0.898837709858
+--------
+ind_cno_fin_ult1
+[[4465730 1537643]
+ [ 286340  210287]]
+             precision    recall  f1-score   support
+
+          0       0.94      0.74      0.83   6003373
+          1       0.12      0.42      0.19    496627
+
+avg / total       0.88      0.72      0.78   6500000
+
+True positive rate is: 0.423430461896
+--------
+ind_ctju_fin_ult1
+[[6383093   60994]
+ [   1280   54633]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.99      1.00   6444087
+          1       0.47      0.98      0.64     55913
+
+avg / total       1.00      0.99      0.99   6500000
+
+True positive rate is: 0.977107291685
+--------
+ind_ctma_fin_ult1
+[[5896737  542655]
+ [  27727   32881]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.92      0.95   6439392
+          1       0.06      0.54      0.10     60608
+
+avg / total       0.99      0.91      0.95   6500000
+
+True positive rate is: 0.542519139388
+--------
+ind_ctop_fin_ult1
+[[5010538  761440]
+ [ 315784  412238]]
+             precision    recall  f1-score   support
+
+          0       0.94      0.87      0.90   5771978
+          1       0.35      0.57      0.43    728022
+
+avg / total       0.87      0.83      0.85   6500000
+
+True positive rate is: 0.566243877245
+--------
+ind_ctpp_fin_ult1
+[[4811236 1442424]
+ [ 140045  106295]]
+             precision    recall  f1-score   support
+
+          0       0.97      0.77      0.86   6253660
+          1       0.07      0.43      0.12    246340
+
+avg / total       0.94      0.76      0.83   6500000
+
+True positive rate is: 0.431497117805
+--------
+ind_deco_fin_ult1
+[[6258486  237056]
+ [   2434    2024]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.96      0.98   6495542
+          1       0.01      0.45      0.02      4458
+
+avg / total       1.00      0.96      0.98   6500000
+
+True positive rate is: 0.454015253477
+--------
+ind_deme_fin_ult1
+[[5248441 1243261]
+ [    623    7675]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.81      0.89   6491702
+          1       0.01      0.92      0.01      8298
+
+avg / total       1.00      0.81      0.89   6500000
+
+True positive rate is: 0.924921667872
+--------
+ind_dela_fin_ult1
+[[4772862 1485383]
+ [  18441  223314]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.76      0.86   6258245
+          1       0.13      0.92      0.23    241755
+
+avg / total       0.96      0.77      0.84   6500000
+
+True positive rate is: 0.92372029534
+--------
+ind_ecue_fin_ult1
+[[4267733 1726024]
+ [ 114462  391781]]
+             precision    recall  f1-score   support
+
+          0       0.97      0.71      0.82   5993757
+          1       0.18      0.77      0.30    506243
+
+avg / total       0.91      0.72      0.78   6500000
+
+True positive rate is: 0.773899095889
+--------
+ind_fond_fin_ult1
+[[4755345 1638366]
+ [   8030   98259]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.74      0.85   6393711
+          1       0.06      0.92      0.11    106289
+
+avg / total       0.98      0.75      0.84   6500000
+
+True positive rate is: 0.924451260243
+--------
+ind_hip_fin_ult1
+[[5697672  769340]
+ [   3286   29702]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.88      0.94   6467012
+          1       0.04      0.90      0.07     32988
+
+avg / total       0.99      0.88      0.93   6500000
+
+True positive rate is: 0.900388019886
+--------
+ind_plan_fin_ult1
+[[5251934 1195909]
+ [   4892   47265]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.81      0.90   6447843
+          1       0.04      0.91      0.07     52157
+
+avg / total       0.99      0.82      0.89   6500000
+
+True positive rate is: 0.906206261863
+--------
+ind_pres_fin_ult1
+[[5474699 1010291]
+ [   1646   13364]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.84      0.92   6484990
+          1       0.01      0.89      0.03     15010
+
+avg / total       1.00      0.84      0.91   6500000
+
+True positive rate is: 0.890339773484
+--------
+ind_reca_fin_ult1
+[[4619576 1560691]
+ [ 134368  185365]]
+             precision    recall  f1-score   support
+
+          0       0.97      0.75      0.84   6180267
+          1       0.11      0.58      0.18    319733
+
+avg / total       0.93      0.74      0.81   6500000
+
+True positive rate is: 0.579749353367
+--------
+ind_tjcr_fin_ult1
+[[4753065 1493386]
+ [ 103759  149790]]
+             precision    recall  f1-score   support
+
+          0       0.98      0.76      0.86   6246451
+          1       0.09      0.59      0.16    253549
+
+avg / total       0.94      0.75      0.83   6500000
+
+True positive rate is: 0.590773381082
+--------
+ind_valo_fin_ult1
+[[4760753 1588399]
+ [  18326  132522]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.75      0.86   6349152
+          1       0.08      0.88      0.14    150848
+
+avg / total       0.97      0.75      0.84   6500000
+
+True positive rate is: 0.878513470513
+--------
+ind_viv_fin_ult1
+[[5332392 1145930]
+ [   4728   16950]]
+             precision    recall  f1-score   support
+
+          0       1.00      0.82      0.90   6478322
+          1       0.01      0.78      0.03     21678
+
+avg / total       1.00      0.82      0.90   6500000
+
+True positive rate is: 0.781898699142
+--------
+ind_nomina_ult1
+[[4383165 1788576]
+ [ 159404  168855]]
+             precision    recall  f1-score   support
+
+        0.0       0.96      0.71      0.82   6171741
+        1.0       0.09      0.51      0.15    328259
+
+avg / total       0.92      0.70      0.78   6500000
+
+True positive rate is: 0.514395644902
+--------
+ind_nom_pens_ult1
+[[4526528 1616869]
+ [ 188614  167989]]
+             precision    recall  f1-score   support
+
+        0.0       0.96      0.74      0.83   6143397
+        1.0       0.09      0.47      0.16    356603
+
+avg / total       0.91      0.72      0.80   6500000
+
+True positive rate is: 0.471081286473
+--------
+ind_recibo_ult1
+[[4245195 1473374]
+ [ 465730  315701]]
+             precision    recall  f1-score   support
+
+          0       0.90      0.74      0.81   5718569
+          1       0.18      0.40      0.25    781431
+
+avg / total       0.81      0.70      0.75   6500000
+
+True positive rate is: 0.404003680427
+--------
