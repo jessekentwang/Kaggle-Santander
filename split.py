@@ -5,7 +5,7 @@ from datetime import datetime
 import pickle
 
 def fits(c):
-    if len(c) > 8 and c[:4] == 'ind_' and c[-5:] == 'ult1':
+    if len(c) > 8 and c[:4] == 'ind_' and c[-5:] == '_ult1':
         return True
     return False
 
