@@ -10,7 +10,7 @@ SAMPLES = 100000
 
 def cleanTrain():
     
-    print("Starting Cleaning Script!")
+    print("Starting Cleaning Script!\n")
 
     if os.path.isfile('RawTrain.pickle'):
         print ("Reading Training data...")

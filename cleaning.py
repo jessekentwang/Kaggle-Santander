@@ -10,11 +10,12 @@ def digitizeMatrix(raw_dataframe):
             raw_dataframe[col_name]=pd.Categorical(raw_dataframe[col_name]).codes
     
 
-print("Reading data...")
-pdtest = pd.read_csv('test_ver2.csv', delimiter = ',')
-#rawtraining=DataFrame.as_matrix(pdtest)
-print("Done!")
-digitizeMatrix(pdtest)
-print(pdtest)
+if __name__ == '__main__':
+    print("Reading data...")
+    pdtest = pd.read_csv('test_ver2.csv', delimiter = ',')
+    #rawtraining=DataFrame.as_matrix(pdtest)
+    print("Done!")
+    digitizeMatrix(pdtest)
+    print(pdtest)
                     
                     
