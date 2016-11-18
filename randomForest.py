@@ -7,25 +7,29 @@ from pandas import Series,DataFrame
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from clean.py import *
+from clean import *
+from subset_dataset import *
 from sklearn.ensemble import RandomForestClassifier
 sns.set_style('whitegrid')
 
 
 
 # get titanic & test csv files as a DataFrame
-[pdtrain, pdtest] = cleanTrain()
+[pdtrain, pdtest] = subsetTrain() # cleanTrain()
 print("----------------------------")
 pdtrain.info()
 pdtest.info()
 print("----------------------------")
 
+#[rawtrain, rawtest] = cleanTrain()
+
+
 
 # define training and testing sets
 
-X_train =  #titanic_df.drop("Survived",axis=1)
-Y_train =  # titanic_df["Survived"]
-X_test  =  #test_df.drop("PassengerId",axis=1).copy()
+#X_train =  #titanic_df.drop("Survived",axis=1)
+#Y_train =  # titanic_df["Survived"]
+#X_test  =  #test_df.drop("PassengerId",axis=1).copy()
 
 # Random Forests
 
