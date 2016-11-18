@@ -8,7 +8,7 @@ import os
 DEBUG = False
 SAMPLES = 100000
 
-def cleanTrain():
+def cleanTrain(n = None):
     
     print("Starting Cleaning Script!\n")
 
