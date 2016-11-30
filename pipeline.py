@@ -88,8 +88,8 @@ def gen_classify(reg):
 	trainFeatures = trainFeatures[:-6500000]
 
 	conf = []
-        predictions = []
-        All_Targets = []
+	predictions = []
+	All_Targets = []
 
 	N = len(trainTarget.columns)
 
@@ -97,10 +97,10 @@ def gen_classify(reg):
 		target1 = trainTarget.columns[i]
 
 		cvTarget = trainTarget[target1][-6500000:]
-                All_Targets.append(cvTarget)
+		All_Targets.append(cvTarget)
 
 		Target = trainTarget[target1][:-6500000]
-                
+
 		#reg = model_method(class_weight = 'balanced')
 		reg.fit(trainFeatures, Target)
 
@@ -114,7 +114,7 @@ def gen_classify(reg):
 		print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
 		print ('--------')
 
-        return [predictions, cvTarget]
+		return [predictions, cvTarget]
 
 def load_data():
 	train, test=cleanTrain()
