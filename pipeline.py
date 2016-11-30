@@ -3,6 +3,7 @@ import numpy as np
 from pandas import DataFrame 
 import pickle
 from sklearn.metrics import confusion_matrix
+import os
 
 def cleanTrain(n = None):
 	
@@ -48,8 +49,8 @@ def cleanTrain(n = None):
 		pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
 		pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
 
-	print "pdtrain shape: ", pdtrain.shape    
-	print "pdtest shape: ", pdtest.shape    
+	print ("pdtrain shape: ", pdtrain.shape)  
+	print ("pdtest shape: ", pdtest.shape)
 		
 	print ("Cleaning script done!\n")
 
@@ -77,7 +78,7 @@ def digitizeMatrix(raw_dataframe):
 		if isinstance(raw_dataframe[col_name][0],str):
 			raw_dataframe[col_name]=pd.Categorical(raw_dataframe[col_name]).codes
 
-def gen_classify(model_method):
+def gen_classify(reg):
 	train, test = cleanTrain()
 
 	trainFeatures, trainTarget = split(train)
@@ -87,6 +88,8 @@ def gen_classify(model_method):
 	trainFeatures = trainFeatures[:-6500000]
 
 	conf = []
+        predictions = []
+        All_Targets = []
 
 	N = len(trainTarget.columns)
 
@@ -94,13 +97,14 @@ def gen_classify(model_method):
 		target1 = trainTarget.columns[i]
 
 		cvTarget = trainTarget[target1][-6500000:]
+                All_Targets.append(cvTarget)
 
 		Target = trainTarget[target1][:-6500000]
-
-		reg = model(class_weight = 'balanced')
+                
+		#reg = model_method(class_weight = 'balanced')
 		reg.fit(trainFeatures, Target)
 
-		predictions = reg.predict(cvFeatures)
+		predictions.append(reg.predict(cvFeatures))
 
 		conf.append(confusion_matrix(cvTarget, predictions))
 
@@ -109,6 +113,8 @@ def gen_classify(model_method):
 		print (classification_report(cvTarget, predictions))
 		print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
 		print ('--------')
+
+        return [predictions, cvTarget]
 
 def load_data():
 	train, test=cleanTrain()
