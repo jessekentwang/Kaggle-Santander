@@ -79,7 +79,7 @@ def digitizeMatrix(raw_dataframe):
 			raw_dataframe[col_name]=pd.Categorical(raw_dataframe[col_name]).codes
 
 def gen_classify(reg,trainFeatures,trainTarget):
-        sz=int(len(trainFeatures)/2)
+	sz=int(len(trainFeatures)/2)
 	cvFeatures = trainFeatures[sz:]
 	trainFeatures = trainFeatures[:sz]
 
