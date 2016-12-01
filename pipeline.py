@@ -119,14 +119,10 @@ def digitizeMatrix(raw_dataframe):
 		if isinstance(raw_dataframe[col_name][0],str):
 			raw_dataframe[col_name]=pd.Categorical(raw_dataframe[col_name]).codes
 
-def gen_classify(reg):
-	train, test = cleanTrain()
-
-	trainFeatures, trainTarget = split(train)
-	digitizeMatrix(trainFeatures)
-
-	cvFeatures = trainFeatures[-6500000:]
-	trainFeatures = trainFeatures[:-6500000]
+def gen_classify(reg,trainFeatures,trainTarget):
+	sz=int(len(trainFeatures)/2)
+	cvFeatures = trainFeatures[sz:]
+	trainFeatures = trainFeatures[:sz]
 
 	conf = []
 	predictions = []
@@ -137,10 +133,10 @@ def gen_classify(reg):
 	for i in range(0,N):
 		target1 = trainTarget.columns[i]
 
-		cvTarget = trainTarget[target1][-6500000:]
+		cvTarget = trainTarget[target1][sz:]
 		All_Targets.append(cvTarget)
 
-		Target = trainTarget[target1][:-6500000]
+		Target = trainTarget[target1][:sz]
 
 		#reg = model_method(class_weight = 'balanced')
 		reg.fit(trainFeatures, Target)
