@@ -96,7 +96,8 @@ def gen_classify(reg,trainFeatures,trainTarget):
 		All_Targets.append(cvTarget)
 
 		Target = trainTarget[target1][:sz]
-
+                print(len(Target))
+                print(len(trainFeatures))
 		#reg = model_method(class_weight = 'balanced')
 		reg.fit(trainFeatures, Target)
 
