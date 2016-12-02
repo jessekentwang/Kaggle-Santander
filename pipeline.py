@@ -27,14 +27,18 @@ def addFeatures(data):
 
         allData = pd.concat([train,test])
         allData2 = allData.copy()
+        for x in allData2.columns:
+            if x == 'fecha_dato' or x == 'ncodpers' or fits(x):
+                continue
+            del allData2[x]
 
         print ('Dataframes made!')
         print (allData.head())
 
-        allData2 = allData2.rename(columns = lambda x: prevName(x), inplace = True)
+        allData2.rename(columns = lambda x: prevName(x), inplace = True)
 
         print ('DF2 renamed!')
-        print (allData.head())
+        print (allData2.head())
 
         a = set(allData['fecha_dato'])
         allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
@@ -42,9 +46,9 @@ def addFeatures(data):
         print ('DF1 dates readjusted')
         print ('Now merging...')
 
-        allData = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
+        retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
 
-        return allData
+        return retval
 
 def cleanTrain(n = None):
 	
