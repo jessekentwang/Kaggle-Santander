@@ -5,6 +5,47 @@ import pickle
 from sklearn.metrics import confusion_matrix
 import os
 
+def prevDate(date, a):
+        if date.startswith('2015-01'):
+            return None
+        elif date.startswith('2016-01'):
+            return next((x for x in a if x.startswith('2015-12')), None)
+        else:
+            ltmp = date[:5]
+            tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
+            return next((x for x in a if x.startswith(ltmp+tmp)), None) 
+
+def prevName(name):
+        if fits(name) or name == 'fecha_dato':
+            return name + '_prev'
+        else:
+            return name
+
+def addFeatures(data):
+        train = data[0]
+        test = data[1]
+
+        allData = pd.concat([train,test])
+        allData2 = allData.copy()
+
+        print ('Dataframes made!')
+        print (allData.head())
+
+        allData2 = allData2.rename(columns = lambda x: prevName(x), inplace = True)
+
+        print ('DF2 renamed!')
+        print (allData.head())
+
+        a = set(allData['fecha_dato'])
+        allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
+
+        print ('DF1 dates readjusted')
+        print ('Now merging...')
+
+        allData = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
+
+        return allData
+
 def cleanTrain(n = None):
 	
 	print("Starting Cleaning Script!\n")
@@ -96,21 +137,22 @@ def gen_classify(reg,trainFeatures,trainTarget):
 		All_Targets.append(cvTarget)
 
 		Target = trainTarget[target1][:sz]
-
+                print(len(Target))
+                print(len(trainFeatures))
 		#reg = model_method(class_weight = 'balanced')
 		reg.fit(trainFeatures, Target)
 
 		predictions.append(reg.predict(cvFeatures))
 
-		conf.append(confusion_matrix(cvTarget, predictions))
+		conf.append(confusion_matrix(cvTarget, predictions[i]))
 
 		print (target1)
 		print (conf[i])
-		print (classification_report(cvTarget, predictions))
+		#print (classification_report(cvTarget, predictions[i]))
 		print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
 		print ('--------')
 
-		return [predictions, cvTarget]
+	return [predictions, cvTarget]
 
 def load_data():
 	train, test=cleanTrain()
@@ -118,3 +160,8 @@ def load_data():
 	digitizeMatrix(trainFeatures)
 
 	return(trainFeatures,trainTarget,test)
+
+if __name__ == "__main__":
+        a = cleanTrain()
+        print (a[0].head())
+
