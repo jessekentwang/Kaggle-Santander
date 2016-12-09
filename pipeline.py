@@ -5,51 +5,60 @@ import pickle
 from sklearn.metrics import confusion_matrix
 import average_precision
 import os
+from sklearn.ensemble import RandomForestClassifier
+from numpy.linalg import svd
+from sklearn import preprocessing
+import matplotlib.pyplot as plt
 
 def prevDate(date, a):
-        if date.startswith('2015-01'):
-                return None
-        elif date.startswith('2016-01'):
-                return next((x for x in a if x.startswith('2015-12')), None)
-        else:
-                ltmp = date[:5]
-                tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
-                return next((x for x in a if x.startswith(ltmp+tmp)), None)
+		if date.startswith('2015-01'):
+				return None
+		elif date.startswith('2016-01'):
+				return next((x for x in a if x.startswith('2015-12')), None)
+		else:
+				ltmp = date[:5]
+				tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
+				return next((x for x in a if x.startswith(ltmp+tmp)), None)
 
 def prevName(name):
-        if fits(name) or name == 'fecha_dato':
-                return name + '_prev'
-        else:
-                return name
+		if fits(name) or name == 'fecha_dato':
+				return name + '_prev'
+		else:
+				return name
 
 def addFeatures(data):
-        train = data[0]
-        test = data[1]
+		train = data[0]
+		test = data[1]
 
-        allData = pd.concat([train,test])
-        allData2 = allData.copy()
-        for x in allData2.columns:
-            if x == 'fecha_dato' or x == 'ncodpers' or fits(x):
-                continue
-            del allData2[x]
+		allData = pd.concat([train,test])
+		allData2 = allData.copy()
+		for x in allData2.columns:
+			if x == 'fecha_dato' or x == 'ncodpers' or fits(x):
+				continue
+			del allData2[x]
 
-        print ('Dataframes made!')
-        print (allData.head())
+		print ('Dataframes made!')
+		print (allData.head())
 
-        allData2.rename(columns = lambda x: prevName(x), inplace = True)
+		allData2.rename(columns = lambda x: prevName(x), inplace = True)
 
-        print ('DF2 renamed!')
-        print (allData2.head())
+		print ('DF2 renamed!')
+		print (allData2.head())
 
-        a = set(allData['fecha_dato'])
-        allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
+		a = set(allData['fecha_dato'])
+		allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
 
-        print ('DF1 dates readjusted')
-        print ('Now merging...')
+		print ('DF1 dates readjusted')
+		print ('Now merging...')
 
-        retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
+		retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
 
-        return retval
+		retval['total_accounts_open'] = 0
+		for x in retval.columns:
+			if len(x) > 9 and x[:4] == 'ind_' and x[-5:] == '_prev':
+				retval['total_accounts_open'] = retval.total_accounts_open + retval[x]
+
+		return retval
 
 def cleanTrain(n = None):
 
@@ -62,9 +71,18 @@ def cleanTrain(n = None):
 		pdtest = pickle.load(open(r'RawTest.pickle','rb'))
 	else:
 		print ("Reading Training data...")
-		pdtest = pd.read_csv('../data/test_ver2.csv', delimiter = ',')
+		pdtest = pd.read_csv('test_ver2.csv/test_ver2.csv', delimiter = ',')
 		print ("Reading Test data...")
-		pdtrain = pd.read_csv('../data/train_ver2.csv', delimiter = ',')
+		pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
+
+                print (pdtrain.head())
+
+        alldata = addFeatures([pdtrain, pdtest])
+        pdtrain = alldata[alldata.fecha_dato != '2016-06-28']
+        pdtest = alldata[alldata.fecha_dato == '2016-06-28']
+        pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
+        #TODO: Why does this line drop everything?
+        pdtest = alldata.dropna(axis = 1, how = 'all')
 
 	print ("done reading raw data!")
 	print ("Cleaning data...")
@@ -90,17 +108,18 @@ def cleanTrain(n = None):
 	print ("Data Clean!")
 
 	print ("Writing Data...")
+        
+        pdtrain = pdtrain.reset_index
+        pdtest = pdtest.reset_index
 
 	if not os.path.isfile('RawTrain.pickle'):
-		pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
-		pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
+                pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
+                pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
 
 	print ("pdtrain shape: ", pdtrain.shape)
 	print ("pdtest shape: ", pdtest.shape)
 
 	print ("Cleaning script done!\n")
-
-
 
 	return [pdtrain, pdtest]
 
@@ -144,7 +163,6 @@ def gen_classify_cv(reg,trainFeatures,trainTarget):
 		Target = trainTarget[target1][:sz]
 		print(len(Target))
 		print(len(trainFeatures))
-		#reg = model_method(class_weight = 'balanced')
 		reg.fit(trainFeatures, Target)
 
 		predictions.append(reg.predict(cvFeatures))
@@ -153,7 +171,6 @@ def gen_classify_cv(reg,trainFeatures,trainTarget):
 
 		print (target1)
 		print (conf[i])
-		#print (classification_report(cvTarget, predictions[i]))
 		print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
 		print("Accuracy is: "+str((conf[i][0][0]+conf[i][1][1])/(conf[i][0][0]+conf[i][0][1]+conf[i][1][0]+conf[i][1][1])))
 		print ('--------')
@@ -188,9 +205,14 @@ def load_data():
 	train, test=cleanTrain()
 	trainFeatures, trainTarget=split(train)
 	digitizeMatrix(trainFeatures)
+	del trainFeatures['fecha_dato_prev']
+	trainFeatures = trainFeatures[trainFeatures['fecha_dato'] != 0]
 
 	return(trainFeatures,trainTarget,test)
 
 if __name__ == "__main__":
-		a = cleanTrain()
-		print (a[0].head())
+		"""data = load_data()
+		model = RandomForestClassifier(n_estimators = 50, class_weight = 'balanced', verbose = 1)
+		result = gen_classify_test(model, data[0], data[1], 5)"""
+		data = cleanTrain()
+
