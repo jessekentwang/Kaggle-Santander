@@ -38,5 +38,5 @@ for i in range(0,N):
     print (target1)
     print (conf[i])
     print (classification_report(cvTarget, predictions))
-    print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
+    print ('True positive rate is: ' + str((conf[i][1][1])/float(conf[i][1][0] + conf[i][1][1])))
     print ('--------')
