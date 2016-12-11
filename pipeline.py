@@ -62,9 +62,9 @@ def cleanTrain(n = None):
 		pdtest = pickle.load(open(r'RawTest.pickle','rb'))
 	else:
 		print ("Reading Training data...")
-		pdtest = pd.read_csv('../data/test_ver2.csv', delimiter = ',')
+		pdtest = pd.read_csv('./test_ver2.csv', delimiter = ',')
 		print ("Reading Test data...")
-		pdtrain = pd.read_csv('../data/train_ver2.csv', delimiter = ',')
+		pdtrain = pd.read_csv('./train_ver2.csv', delimiter = ',')
 
 	print ("done reading raw data!")
 	print ("Cleaning data...")
@@ -154,8 +154,8 @@ def gen_classify_cv(reg,trainFeatures,trainTarget):
 		print (target1)
 		print (conf[i])
 		#print (classification_report(cvTarget, predictions[i]))
-		print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
-		print("Accuracy is: "+str((conf[i][0][0]+conf[i][1][1])/(conf[i][0][0]+conf[i][0][1]+conf[i][1][0]+conf[i][1][1])))
+		print ('True positive rate is: ' + str(float(conf[i][1][1])/float(conf[i][1][0] + conf[i][1][1])))
+		print ('Accuracy is: ' + str(float(conf[i][0][0] + conf[i][1][1])/float(conf[i][0][0]+ conf[i][0][1] + conf[i][1][0] + conf[i][1][1])))
 		print ('--------')
 
 	return [predictions, All_Targets]
@@ -177,8 +177,8 @@ def gen_classify_test(reg,trainFeatures,trainTarget,month):
 
 		print(t1)
 		print(conf[i])
-		print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
-		print("Accuracy is: "+str((conf[i][0][0]+conf[i][1][1])/(conf[i][0][0]+conf[i][0][1]+conf[i][1][0]+conf[i][1][1])))
+		print ('True positive rate is: ' + str(float(conf[i][1][1])/float(conf[i][1][0] + conf[i][1][1])))
+		print("Accuracy is: "+str(float(conf[i][0][0]+conf[i][1][1])/float(conf[i][0][0]+conf[i][0][1]+conf[i][1][0]+conf[i][1][1])))
 		print ('--------')
 	print("AVERAGE PRECISION: ")
 	print(average_precision.mapk(np.asarray(testingLabels),np.asarray(predictions)))
