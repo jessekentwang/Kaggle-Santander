@@ -90,8 +90,8 @@ def cleanTrain(n = None):
 	alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
 	alldata['antiguedad'] = pd.to_numeric(alldata.antiguedad, errors = 'coerce')
 	alldata['indrel_1mes'] = pd.to_numeric(alldata.indrel_1mes, errors = 'coerce')
-	alldata['conyuemp'].fillna(0, inplace = True)
-	alldata['ult_fec_cli_1t'].fillna(0, inplace = True)
+	alldata['conyuemp'].fillna('0', inplace = True)
+	alldata['ult_fec_cli_1t'].fillna('0', inplace = True)
 	alldata['tipodom'].fillna(0, inplace = True)
 	alldata = alldata[alldata.total_accounts_open.isnull() == False]
 
@@ -182,7 +182,7 @@ def getAcc(confs):
         
         for x in confs:
                 acc.append(float(x[0][0] + x[1][1])/(x[0][0] + x[0][1] + x[1][0] + x[1][1]))
-                truePos.append(float(x[1][1])/(x[1][0]))
+                truePos.append(float(x[1][1])/(x[1][0] + x[1][1]))
         
         return [acc, truePos]
 
@@ -212,6 +212,25 @@ def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	print("AVERAGE PRECISION: ")
 	print(average_precision.mapk(np.asarray(testingLabels),np.asarray(predictions)))
 	return [predictions,conf]
+
+def get_Probs_Test(reg, trainFeatures, trainTarget, test, month = 15):
+        N = len(trainTarget.columns)
+        Features = trainFeatures[trainFeatures.fecha_dato == month]
+        Target = trainTarget[trainFeatures.fecha_dato == month]
+        predictions = []
+        if month != 15:
+                tmptest = trainFeatures[trainFeatures.fecha_dato == (month + 1)]
+        for i in range(0, N):
+                t1 = (Target.columns[i])
+                reg.fit(Features, Target[t1])
+                if month == 15:
+                        predictions.append(reg.predict_proba(test))
+                else:
+                        predictions.append(reg.predict_proba(tmptest))
+                        
+
+        return predictions
+
 
 def stack_models(NModels, preds, cutoff = 0.5, weights = None):
 
@@ -282,7 +301,7 @@ def load_data():
 	digitizeMatrix(trainFeatures)
 	del trainFeatures['fecha_dato_prev']
 	trainFeatures = trainFeatures[trainFeatures['fecha_dato'] != 0]
-	trainFeatures.fillna(trainFeatures.mean())
+	trainFeatures = trainFeatures.fillna(trainFeatures.mean())
 
 	return(trainFeatures,trainTarget,test)
 
