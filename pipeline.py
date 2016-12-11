@@ -62,7 +62,7 @@ def addFeatures(data):
 
 def cleanTrain(n = None):
 
-		print("Starting Cleaning Script!\n")
+	print("Starting Cleaning Script!\n")
 
 
 	if os.path.isfile('RawTrain.pickle'):
@@ -72,17 +72,17 @@ def cleanTrain(n = None):
 		pdtest = pickle.load(open(r'RawTest.pickle','rb'))
 	else:
 		print ("Reading Training data...")
-		pdtest = pd.read_csv('./test_ver2.csv', delimiter = ',')
+		pdtest = pd.read_csv('test_ver2.csv/test_ver2.csv', delimiter = ',')
 		print ("Reading Test data...")
-		pdtrain = pd.read_csv('./train_ver2.csv', delimiter = ',')
+		pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
 
 
 		alldata = addFeatures([pdtrain, pdtest])
 		alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
 		alldata['antiguedad'] = pd.to_numeric(alldata.antiguedad, errors = 'coerce')
 		alldata['indrel_1mes'] = pd.to_numeric(alldata.indrel_1mes, errors = 'coerce')
-		alldata['conyuemp'].fillna(0, inplace = True)
-		alldata['ult_fec_cli_1t'].fillna(0, inplace = True)
+		alldata['conyuemp'].fillna('0', inplace = True)
+		alldata['ult_fec_cli_1t'].fillna('0', inplace = True)
 		alldata['tipodom'].fillna(0, inplace = True)
 		alldata = alldata[alldata.total_accounts_open.isnull() == False]
 
@@ -203,6 +203,16 @@ def getPCAVariances(matrix):
 	pca.fit(matrix)
 	return pca.explained_variance_
 
+def getAcc(confs):
+        acc = []
+        truePos = []
+        
+        for x in confs:
+                acc.append(float(x[0][0] + x[1][1])/(x[0][0] + x[0][1] + x[1][0] + x[1][1]))
+                truePos.append(float(x[1][1])/(x[1][0]))
+        
+        return [acc, truePos]
+
 def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	trainingData=trainFeatures[trainFeatures.fecha_dato==month]
 	trainingLabels=trainTarget[trainFeatures.fecha_dato==(month)]
@@ -229,6 +239,58 @@ def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	print("AVERAGE PRECISION: ")
 	print(average_precision.mapk(np.asarray(testingLabels),np.asarray(predictions)))
 	return [predictions,conf]
+
+def stack_models(NModels, preds, cutoff = 0.5, weights = None):
+
+# preds is list of predictions for each model
+
+	if weights == None:
+		pass
+
+	for i in range(0, len(weights)):
+		weights[i] = np.matrix(weights[i])
+		preds[i] = np.matrix(preds[i])
+
+	retval = np.matrix(np.zeros(weights[0].shape))
+
+	for i in range(0, NModels):
+		retval = retval + np.multiply(weights[i],preds[i])
+	
+	retval = np.array(retval)
+
+	for i in range(0, len(retval)):
+		for j in range(0, len(retval[0])):
+			if retval[i][j] > cutoff:
+				retval[i][j] = 1
+			else:
+				retval[i][j] = 0
+	
+	return retval.transpose()
+                
+
+"""if (weights == None):
+
+        #TODO: run a sample test and weight by accuracy
+        weights = []
+        for i in range(0, NModels):
+                w = []
+                for j in range(0, NLabels):
+                        w.append(1.0/NModels)
+                weights.append(w)
+
+newPreds = np.array(preds).transpose()
+
+weights = np.array(weights).transpose()
+
+for i in range(0, NLabels):
+        newPreds[i] = np.dot(newPreds[i], weights[i])
+        if newPreds[i] > cutoff:
+                newPreds[i] = 1
+        else:
+                newPreds[i] = 0"""
+
+
+        
 
 def load_data():
 	train, test=cleanTrain()
