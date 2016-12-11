@@ -2,12 +2,14 @@
 import pandas as pd
 import numpy as np
 from pipeline import *
-from importlib import reload
 
+from importlib import reload
 #pdtrain, pdtest = cleanTrain()
 #little = pdtrain[:1000000]
 
 def timetransform(pdtrain) :
+
+
     print('#### Starting...... ####')
     pdtrain = pdtrain.sort_values(by=['fecha_dato', 'ncodpers'])
     col_list = pdtrain.columns
@@ -71,29 +73,29 @@ def timetransform(pdtrain) :
         selectorlast = (np.in1d(lastmonth['ncodpers'], clientstokeep))
 
         matchedthis = (thismonth[selector].sort_values(by='ncodpers')).drop_duplicates(subset='ncodpers')
-        print('matchedthis shape:' + str(matchedthis.shape) + 'In month' + str(month_index))
+        #print('matchedthis shape:' + str(matchedthis.shape) + 'In month' + str(month_index))
         matchedlast = lastmonth[selectorlast].sort_values(by='ncodpers').drop_duplicates(subset='ncodpers')
-        print('matchedlast shape:' + str(matchedlast.shape))
+        #print('matchedlast shape:' + str(matchedlast.shape))
 
         thisfeatures, thistargets = split(matchedthis)
         lastfeatures, lasttargets = split(matchedlast)
 
-        print('thistargets shape' + str(thistargets.shape))
-        print('lasttargets shape' + str(lasttargets.shape))
+        #print('thistargets shape' + str(thistargets.shape))
+        #print('lasttargets shape' + str(lasttargets.shape))
 
         thismatrix = thistargets.as_matrix()
         lastmatrix = lasttargets.as_matrix()
-        print(lastmatrix)
+        #print(lastmatrix)
         added = pd.DataFrame(data=(np.add(thismatrix, lastmatrix)), columns=fields_list)
-        print('added shape' + str(added.shape))
-        print('thisfeatures shape' + str(thisfeatures.shape))
+        #print('added shape' + str(added.shape))
+        #print('thisfeatures shape' + str(thisfeatures.shape))
 
         features = thisfeatures.reset_index()
         del features['index']
         targets = added.reset_index()
         del targets['index']
 
-        print(targets.head())
+        #print(targets.head())
 
         objs = [features, targets]
         transformed = (pd.concat(objs, axis=1))
@@ -113,7 +115,7 @@ def timetransform(pdtrain) :
         thismonth = pd.concat(objs, axis=0)
         print('returning....')
 
-        print(thismonth.head())
+        #print(thismonth.head())
 
         print('thismonth shape' + str(thismonth.shape))
         print('origthismonth shape' + origshape)

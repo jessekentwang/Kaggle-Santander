@@ -10,6 +10,7 @@ from numpy.linalg import svd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
+import featuretransform
 
 def prevDate(date, a):
 		if date.startswith('2015-01'):
@@ -76,6 +77,9 @@ def cleanTrain(n = None):
 		print ("Reading Test data...")
 		pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
 
+		#print('old shape: ' + str(pdtrain.shape))
+
+		#print(str(pdtrain.shape))
 
 		alldata = addFeatures([pdtrain, pdtest])
 		alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
@@ -85,6 +89,8 @@ def cleanTrain(n = None):
 		alldata['ult_fec_cli_1t'].fillna('0', inplace = True)
 		alldata['tipodom'].fillna(0, inplace = True)
 		alldata = alldata[alldata.total_accounts_open.isnull() == False]
+
+
 
 		"""for x in alldata.columns:
 			print (x)
@@ -122,7 +128,7 @@ def cleanTrain(n = None):
 		print ("Data Clean!")
 
 		print ("Writing Data...")
-			
+
 		pdtrain = pdtrain.reset_index()
 		pdtest = pdtest.reset_index()
 
@@ -294,6 +300,7 @@ for i in range(0, NLabels):
 
 def load_data():
 	train, test=cleanTrain()
+	train = timetransform(train)
 	trainFeatures, trainTarget=split(train)
 	digitizeMatrix(trainFeatures)
 	del trainFeatures['fecha_dato_prev']
