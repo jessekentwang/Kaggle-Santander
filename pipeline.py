@@ -317,12 +317,12 @@ def plotAccTP(confMatricies):
 
 def load_data():
 	train, test=cleanTrain()
-	train = timetransform(train)
+	#train = timetransform(train)
 	del train['index']
 	trainFeatures, trainTarget=split(train)
 	digitizeMatrix(trainFeatures)
 	del trainFeatures['fecha_dato_prev']
-	trainFeatures = trainFeatures[trainFeatures['fecha_dato'] != 0]
+	#trainFeatures = trainFeatures[trainFeatures['fecha_dato'] != 0]
 	trainFeatures = trainFeatures.fillna(trainFeatures.mean())
 
 	return(trainFeatures,trainTarget,test)
