@@ -1,11 +1,21 @@
 
 import pandas as pd
 import numpy as np
-from pipeline import *
-
+import pipeline 
+from pipeline import split
 from importlib import reload
 #pdtrain, pdtest = cleanTrain()
 #little = pdtrain[:1000000]
+#space
+
+def split(data):
+	target_cols = [c for c in data.columns if fits(c)]
+	feature_cols = [c for c in data.columns if c not in target_cols]
+
+	print (target_cols)
+	print (feature_cols)
+
+	return [data[feature_cols], data[target_cols]]
 
 def timetransform(pdtrain) :
 
