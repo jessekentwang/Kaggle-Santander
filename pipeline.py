@@ -82,8 +82,8 @@ def cleanTrain(n = None):
 		pdtest = pd.read_csv('./test_ver2.csv', delimiter = ',')
 		print ("Reading Test data...")
 		pdtrain = pd.read_csv('./train_ver2.csv', delimiter = ',')
-		pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
-		pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
+		#pickle.dump(pdtrain, open('RawTrain.pickle', 'wb'))
+		#pickle.dump(pdtest, open('RawTest.pickle', 'wb'))
 
 	print("Cleaning Data...")
 	alldata = addFeatures([pdtrain, pdtest])
@@ -216,6 +216,7 @@ def plotAccTP(confMatricies):
 def load_data():
 	train, test=cleanTrain()
 	train = timetransform(train)
+	del train['index']
 	trainFeatures, trainTarget=split(train)
 	digitizeMatrix(trainFeatures)
 	del trainFeatures['fecha_dato_prev']
