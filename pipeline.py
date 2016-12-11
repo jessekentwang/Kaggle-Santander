@@ -14,17 +14,17 @@ def prevDate(date, a):
 		if date.startswith('2015-01'):
 				return None
 		elif date.startswith('2016-01'):
-				return next((x for x in a if x.startswith('2015-12')), None)
+			return next((x for x in a if x.startswith('2015-12')), None)
 		else:
-				ltmp = date[:5]
-				tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
-				return next((x for x in a if x.startswith(ltmp+tmp)), None)
+			ltmp = date[:5]
+			tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
+			return next((x for x in a if x.startswith(ltmp+tmp)), None)
 
 def prevName(name):
 		if fits(name) or name == 'fecha_dato':
-				return name + '_prev'
+			return name + '_prev'
 		else:
-				return name
+			return name
 
 def addFeatures(data):
 		train = data[0]
@@ -62,66 +62,79 @@ def addFeatures(data):
 
 def cleanTrain(n = None):
 
-	print("Starting Cleaning Script!\n")
+		print("Starting Cleaning Script!\n")
 
-	if os.path.isfile('RawTrain.pickle'):
-		print ("Reading Training data...")
-		pdtrain = pickle.load(open(r'RawTrain.pickle', 'rb'))
-		print ("Reading Test data...")
-		pdtest = pickle.load(open(r'RawTest.pickle','rb'))
-	else:
-		print ("Reading Training data...")
-		pdtest = pd.read_csv('test_ver2.csv/test_ver2.csv', delimiter = ',')
-		print ("Reading Test data...")
-		pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
+		if os.path.isfile('RawTrain.pickle'):
+			print ("Reading Training data...")
+			pdtrain = pickle.load(open(r'RawTrain.pickle', 'rb'))
+			print ("Reading Test data...")
+			pdtest = pickle.load(open(r'RawTest.pickle','rb'))
+		else:
+			print ("Reading Training data...")
+			pdtest = pd.read_csv('test_ver2.csv/test_ver2.csv', delimiter = ',')
+			print ("Reading Test data...")
+			pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
 
-                print (pdtrain.head())
+		alldata = addFeatures([pdtrain, pdtest])
+		alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
+		alldata['antiguedad'] = pd.to_numeric(alldata.antiguedad, errors = 'coerce')
+		alldata['indrel_1mes'] = pd.to_numeric(alldata.indrel_1mes, errors = 'coerce')
+		alldata['conyuemp'].fillna(0, inplace = True)
+		alldata['ult_fec_cli_1t'].fillna(0, inplace = True)
+		alldata['tipodom'].fillna(0, inplace = True)
 
-        alldata = addFeatures([pdtrain, pdtest])
-        pdtrain = alldata[alldata.fecha_dato != '2016-06-28']
-        pdtest = alldata[alldata.fecha_dato == '2016-06-28']
-        pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
-        #TODO: Why does this line drop everything?
-        pdtest = alldata.dropna(axis = 1, how = 'all')
+                for x in alldata.columns:
+                        print (x)
+                        if not fits(x):
+                                mean_x = alldata[x].mean()
+                                alldata[x].fillna(mean_x, inplace = True)
 
-	print ("done reading raw data!")
-	print ("Cleaning data...")
+                #for x in alldata. 
 
-	print (pdtrain.isnull().sum())
+		pdtrain = alldata[alldata.fecha_dato != '2016-06-28']
+		pdtest = alldata[alldata.fecha_dato == '2016-06-28']
+		pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
+		#TODO: Why does this line drop everything?
+		pdtest = alldata.dropna(axis = 1, how = 'all')
 
-	if not os.path.isfile('RawTrain.pickle'):
-		pdtrain = pdtrain[pdtrain['tipodom'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['ind_nomina_ult1'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['sexo'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['indrel_1mes'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['segmento'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['canal_entrada'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['cod_prov'].isnull() == False]
+		print ("done reading raw data!")
+		print ("Cleaning data...")
 
-		stillBad = pdtrain.isnull().sum()
+		print (pdtrain.isnull().sum())
 
-		for i in range(0, len(stillBad.index)):
-			if stillBad[i] > 0:
-				pdtrain = pdtrain.drop(stillBad.index[i], 1)
-				pdtest = pdtest.drop(stillBad.index[i], 1)
+		if not os.path.isfile('RawTrain.pickle'):
+			pdtrain = pdtrain[pdtrain['tipodom'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['ind_nomina_ult1'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['sexo'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['indrel_1mes'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['segmento'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['canal_entrada'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['cod_prov'].isnull() == False]
 
-	print ("Data Clean!")
+			stillBad = pdtrain.isnull().sum()
 
-	print ("Writing Data...")
-        
-        pdtrain = pdtrain.reset_index
-        pdtest = pdtest.reset_index
+			for i in range(0, len(stillBad.index)):
+				if stillBad[i] > 0:
+					pdtrain = pdtrain.drop(stillBad.index[i], 1)
+					pdtest = pdtest.drop(stillBad.index[i], 1)
 
-	if not os.path.isfile('RawTrain.pickle'):
-                pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
-                pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
+		print ("Data Clean!")
 
-	print ("pdtrain shape: ", pdtrain.shape)
-	print ("pdtest shape: ", pdtest.shape)
+		print ("Writing Data...")
+			
+		#pdtrain = pdtrain.reset_index
+		#pdtest = pdtest.reset_index
 
-	print ("Cleaning script done!\n")
+		"""if not os.path.isfile('RawTrain.pickle'):
+			pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
+			pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))"""
 
-	return [pdtrain, pdtest]
+		#print ("pdtrain shape: ", pdtrain.shape)
+		#print ("pdtest shape: ", pdtest.shape)
+
+		print ("Cleaning script done!\n")
+
+		return [pdtrain, pdtest]
 
 def fits(c):
 	if len(c) > 8 and c[:4] == 'ind_' and c[-5:] == '_ult1':
@@ -211,8 +224,7 @@ def load_data():
 	return(trainFeatures,trainTarget,test)
 
 if __name__ == "__main__":
-		"""data = load_data()
-		model = RandomForestClassifier(n_estimators = 50, class_weight = 'balanced', verbose = 1)
-		result = gen_classify_test(model, data[0], data[1], 5)"""
-		data = cleanTrain()
+	data = load_data()
+	model = RandomForestClassifier(n_estimators = 50, class_weight = 'balanced', verbose = 1)
+	result = gen_classify_test(model, data[0], data[1], 5)
 
