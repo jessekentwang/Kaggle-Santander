@@ -14,15 +14,21 @@ def timetransform(pdtrain) :
     pdtrain = pdtrain.sort_values(by=['fecha_dato', 'ncodpers'])
     col_list = pdtrain.columns
 
-    start_index = 0
+    """start_index = 0
     for field in col_list:
         start_index = start_index + 1
         if field == 'segmento':
                 break
-    fields_list = col_list[start_index:]
+    fields_list = col_list[start_index:]"""
 
     print('#### Transfrom 0s to -1s for all entries ####')
     # Transform 0's to -1's for all entries
+
+
+    pdfeatures, pdtargets = split(pdtrain)
+
+    fields_list = pdtargets.columns
+
     for field in fields_list:
         print('field type of :' + field)
         print(type(pdtrain[field][1]))
