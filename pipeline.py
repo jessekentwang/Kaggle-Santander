@@ -10,7 +10,6 @@ from numpy.linalg import svd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
-import featuretransform
 from featuretransform import timetransform
 
 def prevDate(date, a):
@@ -79,19 +78,22 @@ def cleanTrain(n = None):
 		pdtest = pickle.load(open(r'RawTest.pickle','rb'))
 	else:
 		print ("Reading Training data...")
-		pdtest = pd.read_csv('./test_ver2.csv', delimiter = ',')
+		pdtest = pd.read_csv('test_ver2.csv/test_ver2.csv', delimiter = ',')
 		print ("Reading Test data...")
-		pdtrain = pd.read_csv('./train_ver2.csv', delimiter = ',')
-		#pickle.dump(pdtrain, open('RawTrain.pickle', 'wb'))
-		#pickle.dump(pdtest, open('RawTest.pickle', 'wb'))
+
+		pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
+
+		#pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
+		#pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
+
 
 	print("Cleaning Data...")
 	alldata = addFeatures([pdtrain, pdtest])
 	alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
 	alldata['antiguedad'] = pd.to_numeric(alldata.antiguedad, errors = 'coerce')
 	alldata['indrel_1mes'] = pd.to_numeric(alldata.indrel_1mes, errors = 'coerce')
-	alldata['conyuemp'].fillna(0, inplace = True)
-	alldata['ult_fec_cli_1t'].fillna(0, inplace = True)
+	alldata['conyuemp'].fillna('0', inplace = True)
+	alldata['ult_fec_cli_1t'].fillna('0', inplace = True)
 	alldata['tipodom'].fillna(0, inplace = True)
 	alldata = alldata[alldata.total_accounts_open.isnull() == False]
 
@@ -176,6 +178,16 @@ def getPCAVariances(matrix):
 	pca.fit(matrix)
 	return pca.explained_variance_
 
+def getAcc(confs):
+        acc = []
+        truePos = []
+
+        for x in confs:
+                acc.append(float(x[0][0] + x[1][1])/(x[0][0] + x[0][1] + x[1][0] + x[1][1]))
+                truePos.append(float(x[1][1])/(x[1][0] + x[1][1]))
+
+        return [acc, truePos]
+
 def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	trainingData=trainFeatures[trainFeatures.fecha_dato==month]
 	trainingLabels=trainTarget[trainFeatures.fecha_dato==(month)]
@@ -203,6 +215,95 @@ def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	print(average_precision.mapk(np.asarray(testingLabels),np.asarray(predictions)))
 	return [predictions,conf]
 
+def gen_classify_stack(predictionMat,trainFeatures,trainTarget,month):
+	actualMat=trainTarget[trainFeatures.fecha_dato==(month+1)]
+	conf=[]
+	N=len(actualMat.columns)
+	for i in range(0,N):
+		t1=actualMat.columns[i]
+		conf.append(confusion_matrix(actualMat[t1],predictionMat[:,i]))
+
+	at=plotAccTP(conf)
+	return (at,conf)
+
+def getWeights(accuracyMat):
+	b=accuracyMat.transpose()
+	c=[]
+	for i in range(len(b)):
+		c.append(np.asarray([float(x) for x in b[i]])/sum(b[i]))
+
+	return np.asarray(c).transpose()
+
+def get_Probs_Test(reg, trainFeatures, trainTarget, test, month = 15):
+        N = len(trainTarget.columns)
+        Features = trainFeatures[trainFeatures.fecha_dato == month]
+        Target = trainTarget[trainFeatures.fecha_dato == month]
+        predictions = []
+        if month != 15:
+                tmptest = trainFeatures[trainFeatures.fecha_dato == (month + 1)]
+        for i in range(0, N):
+                t1 = (Target.columns[i])
+                reg.fit(Features, Target[t1])
+                if month == 15:
+                        predictions.append(reg.predict_proba(test))
+                else:
+                        predictions.append(reg.predict_proba(tmptest))
+
+
+        return predictions
+
+
+def stack_models(NModels, preds, cutoff = 0.5, weights = None):
+
+# preds is list of predictions for each model
+
+	if weights == None:
+		pass
+
+	for i in range(0, len(weights)):
+		weights[i] = np.matrix(weights[i])
+		preds[i] = np.matrix(preds[i])
+
+	retval = np.matrix(np.zeros(weights[0].shape))
+
+	for i in range(0, NModels):
+		retval = retval + np.multiply(weights[i],preds[i])
+
+	retval = np.array(retval)
+
+	for i in range(0, len(retval)):
+		for j in range(0, len(retval[0])):
+			if retval[i][j] > cutoff:
+				retval[i][j] = 1
+			else:
+				retval[i][j] = 0
+
+	return retval.transpose()
+
+
+"""if (weights == None):
+
+        #TODO: run a sample test and weight by accuracy
+        weights = []
+        for i in range(0, NModels):
+                w = []
+                for j in range(0, NLabels):
+                        w.append(1.0/NModels)
+                weights.append(w)
+
+newPreds = np.array(preds).transpose()
+
+weights = np.array(weights).transpose()
+
+for i in range(0, NLabels):
+        newPreds[i] = np.dot(newPreds[i], weights[i])
+        if newPreds[i] > cutoff:
+                newPreds[i] = 1
+        else:
+                newPreds[i] = 0"""
+
+
+
 def plotAccTP(confMatricies):
 	accuracies=[]
 	truepositives=[]
@@ -213,6 +314,7 @@ def plotAccTP(confMatricies):
 		truepositives.append(true_pos)
 
 	return (accuracies,truepositives)
+
 def load_data():
 	train, test=cleanTrain()
 	train = timetransform(train)
@@ -221,7 +323,7 @@ def load_data():
 	digitizeMatrix(trainFeatures)
 	del trainFeatures['fecha_dato_prev']
 	trainFeatures = trainFeatures[trainFeatures['fecha_dato'] != 0]
-	trainFeatures.fillna(trainFeatures.mean())
+	trainFeatures = trainFeatures.fillna(trainFeatures.mean())
 
 	return(trainFeatures,trainTarget,test)
 
