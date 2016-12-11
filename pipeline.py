@@ -10,10 +10,6 @@ from numpy.linalg import svd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
-<<<<<<< HEAD
-=======
-import featuretransform
->>>>>>> 1bc365072dd5d2b49a43cd5cab9a3f9014b64532
 from featuretransform import timetransform
 
 def prevDate(date, a):
