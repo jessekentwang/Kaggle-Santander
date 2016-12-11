@@ -1,13 +1,15 @@
 
 import pandas as pd
 import numpy as np
-import pipeline 
-from pipeline import split
+import pipeline
 from importlib import reload
 #pdtrain, pdtest = cleanTrain()
 #little = pdtrain[:1000000]
 #space
-
+def fits(c):
+	if len(c) > 8 and c[:4] == 'ind_' and c[-5:] == '_ult1':
+		return True
+	return False
 def split(data):
 	target_cols = [c for c in data.columns if fits(c)]
 	feature_cols = [c for c in data.columns if c not in target_cols]
