@@ -11,6 +11,7 @@ from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
 import featuretransform
+from featuretransform import timetransform
 
 def prevDate(date, a):
 		if date.startswith('2015-01'):
