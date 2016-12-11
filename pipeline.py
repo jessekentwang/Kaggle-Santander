@@ -10,6 +10,10 @@ from numpy.linalg import svd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
+<<<<<<< HEAD
+=======
+import featuretransform
+>>>>>>> 1bc365072dd5d2b49a43cd5cab9a3f9014b64532
 from featuretransform import timetransform
 
 def prevDate(date, a):
@@ -61,6 +65,11 @@ def addFeatures(data):
 
 		return retval
 
+def replaceNanWithMean(matrix):
+	averages=matrix.mean()
+	for col in matrix.columns:
+		if col in averages.keys():
+			matrix[col].fillna(averages[col])
 def cleanTrain(n = None):
 
 	print("Starting Cleaning Script!\n")
@@ -77,71 +86,33 @@ def cleanTrain(n = None):
 		print ("Reading Test data...")
 		pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
 
-		#print('old shape: ' + str(pdtrain.shape))
+		#pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
+		#pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
 
-		#print(str(pdtrain.shape))
+	print("Cleaning Data...")
+	alldata = addFeatures([pdtrain, pdtest])
+	alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
+	alldata['antiguedad'] = pd.to_numeric(alldata.antiguedad, errors = 'coerce')
+	alldata['indrel_1mes'] = pd.to_numeric(alldata.indrel_1mes, errors = 'coerce')
+	alldata['conyuemp'].fillna(0, inplace = True)
+	alldata['ult_fec_cli_1t'].fillna(0, inplace = True)
+	alldata['tipodom'].fillna(0, inplace = True)
+	alldata = alldata[alldata.total_accounts_open.isnull() == False]
 
-		alldata = addFeatures([pdtrain, pdtest])
-		alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
-		alldata['antiguedad'] = pd.to_numeric(alldata.antiguedad, errors = 'coerce')
-		alldata['indrel_1mes'] = pd.to_numeric(alldata.indrel_1mes, errors = 'coerce')
-		alldata['conyuemp'].fillna('0', inplace = True)
-		alldata['ult_fec_cli_1t'].fillna('0', inplace = True)
-		alldata['tipodom'].fillna(0, inplace = True)
-		alldata = alldata[alldata.total_accounts_open.isnull() == False]
+	pdtrain = alldata[alldata.fecha_dato != '2016-06-28']
+	pdtest = alldata[alldata.fecha_dato == '2016-06-28']
+	pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
+	#TODO: Why does this line drop everything?
+	pdtest = pdtest.dropna(axis = 1, how = 'all')
 
+	print ("done reading raw data!")
 
+	pdtrain = pdtrain.reset_index()
+	pdtest = pdtest.reset_index()
 
-		"""for x in alldata.columns:
-			print (x)
-			if not fits(x):
-				mean_x = alldata[x].mean()
-				alldata[x].fillna(mean_x, inplace = True)"""
+	print ("Cleaning script done!\n")
 
-		pdtrain = alldata[alldata.fecha_dato != '2016-06-28']
-		pdtest = alldata[alldata.fecha_dato == '2016-06-28']
-		pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
-		#TODO: Why does this line drop everything?
-		pdtest = pdtest.dropna(axis = 1, how = 'all')
-
-		print ("done reading raw data!")
-		print ("Cleaning data...")
-
-		print (pdtrain.isnull().sum())
-
-		if not os.path.isfile('RawTrain.pickle'):
-			#pdtrain = pdtrain[pdtrain['tipodom'].isnull() == False]
-			pdtrain = pdtrain[pdtrain['ind_nomina_ult1'].isnull() == False]
-			"""pdtrain = pdtrain[pdtrain['sexo'].isnull() == False]
-			pdtrain = pdtrain[pdtrain['indrel_1mes'].isnull() == False]
-			pdtrain = pdtrain[pdtrain['segmento'].isnull() == False]
-			pdtrain = pdtrain[pdtrain['canal_entrada'].isnull() == False]
-			pdtrain = pdtrain[pdtrain['cod_prov'].isnull() == False]"""
-
-			"""stillBad = pdtrain.isnull().sum()
-
-			for i in range(0, len(stillBad.index)):
-				if stillBad[i] > 0:
-					pdtrain = pdtrain.drop(stillBad.index[i], 1)
-					pdtest = pdtest.drop(stillBad.index[i], 1)"""
-
-		print ("Data Clean!")
-
-		print ("Writing Data...")
-
-		pdtrain = pdtrain.reset_index()
-		pdtest = pdtest.reset_index()
-
-		"""if not os.path.isfile('RawTrain.pickle'):
-			pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
-			pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))"""
-
-		#print ("pdtrain shape: ", pdtrain.shape)
-		#print ("pdtest shape: ", pdtest.shape)
-
-		print ("Cleaning script done!\n")
-
-		return [pdtrain, pdtest]
+	return [pdtrain, pdtest]
 
 def fits(c):
 	if len(c) > 8 and c[:4] == 'ind_' and c[-5:] == '_ult1':
@@ -297,6 +268,16 @@ for i in range(0, NLabels):
 
 
         
+def plotAccTP(confMatricies):
+	accuracies=[]
+	truepositives=[]
+	for m in confMatricies:
+		accuracy=(m[0][0]+m[1][1])/(m[0][0]+m[0][1]+m[1][0]+m[1][1])
+		true_pos=(m[1][1])/(m[1][1]+m[1][0])
+		accuracies.append(accuracies)
+		truepositives.append(true_pos)
+
+	return (accuracies,truepositives)
 
 def load_data():
 	train, test=cleanTrain()
@@ -305,6 +286,7 @@ def load_data():
 	digitizeMatrix(trainFeatures)
 	del trainFeatures['fecha_dato_prev']
 	trainFeatures = trainFeatures[trainFeatures['fecha_dato'] != 0]
+	trainFeatures.fillna(trainFeatures.mean())
 
 	return(trainFeatures,trainTarget,test)
 
