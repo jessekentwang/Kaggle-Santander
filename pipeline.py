@@ -88,23 +88,21 @@ def cleanTrain(n = None):
 		alldata['conyuemp'].fillna(0, inplace = True)
 		alldata['ult_fec_cli_1t'].fillna(0, inplace = True)
 		alldata['tipodom'].fillna(0, inplace = True)
+		alldata = alldata[alldata.total_accounts_open.isnull() == False]
 
-		print(str(alldata.columns))
-		print(alldata.head())
 
-		for x in alldata.columns:
+
+		"""for x in alldata.columns:
 			print (x)
 			if not fits(x):
 				mean_x = alldata[x].mean()
-				alldata[x].fillna(mean_x, inplace = True)
+				alldata[x].fillna(mean_x, inplace = True)"""
 
-		#for x in alldata.
-
-		pdtrain = alldata[alldata.fecha_dato == '2016-06-28']
+		pdtrain = alldata[alldata.fecha_dato != '2016-06-28']
 		pdtest = alldata[alldata.fecha_dato == '2016-06-28']
 		pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
 		#TODO: Why does this line drop everything?
-		pdtest = alldata.dropna(axis = 1, how = 'all')
+		pdtest = pdtest.dropna(axis = 1, how = 'all')
 
 		print ("done reading raw data!")
 		print ("Cleaning data...")
@@ -112,20 +110,20 @@ def cleanTrain(n = None):
 		print (pdtrain.isnull().sum())
 
 		if not os.path.isfile('RawTrain.pickle'):
-			pdtrain = pdtrain[pdtrain['tipodom'].isnull() == False]
+			#pdtrain = pdtrain[pdtrain['tipodom'].isnull() == False]
 			pdtrain = pdtrain[pdtrain['ind_nomina_ult1'].isnull() == False]
-			pdtrain = pdtrain[pdtrain['sexo'].isnull() == False]
+			"""pdtrain = pdtrain[pdtrain['sexo'].isnull() == False]
 			pdtrain = pdtrain[pdtrain['indrel_1mes'].isnull() == False]
 			pdtrain = pdtrain[pdtrain['segmento'].isnull() == False]
 			pdtrain = pdtrain[pdtrain['canal_entrada'].isnull() == False]
-			pdtrain = pdtrain[pdtrain['cod_prov'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['cod_prov'].isnull() == False]"""
 
-			stillBad = pdtrain.isnull().sum()
+			"""stillBad = pdtrain.isnull().sum()
 
 			for i in range(0, len(stillBad.index)):
 				if stillBad[i] > 0:
 					pdtrain = pdtrain.drop(stillBad.index[i], 1)
-					pdtest = pdtest.drop(stillBad.index[i], 1)
+					pdtest = pdtest.drop(stillBad.index[i], 1)"""
 
 		print ("Data Clean!")
 
