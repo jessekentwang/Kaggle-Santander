@@ -5,55 +5,65 @@ import pickle
 from sklearn.metrics import confusion_matrix
 import average_precision
 import os
+import matplotlib.pyplot as plt
+from numpy.linalg import svd
+from sklearn import preprocessing
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.decomposition import PCA
 
 def prevDate(date, a):
-        if date.startswith('2015-01'):
-                return None
-        elif date.startswith('2016-01'):
-                return next((x for x in a if x.startswith('2015-12')), None)
-        else:
-                ltmp = date[:5]
-                tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
-                return next((x for x in a if x.startswith(ltmp+tmp)), None)
+		if date.startswith('2015-01'):
+				return None
+		elif date.startswith('2016-01'):
+			return next((x for x in a if x.startswith('2015-12')), None)
+		else:
+			ltmp = date[:5]
+			tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
+			return next((x for x in a if x.startswith(ltmp+tmp)), None)
 
 def prevName(name):
-        if fits(name) or name == 'fecha_dato':
-                return name + '_prev'
-        else:
-                return name
+		if fits(name) or name == 'fecha_dato':
+			return name + '_prev'
+		else:
+			return name
 
 def addFeatures(data):
-        train = data[0]
-        test = data[1]
+		train = data[0]
+		test = data[1]
 
-        allData = pd.concat([train,test])
-        allData2 = allData.copy()
-        for x in allData2.columns:
-            if x == 'fecha_dato' or x == 'ncodpers' or fits(x):
-                continue
-            del allData2[x]
+		allData = pd.concat([train,test])
+		allData2 = allData.copy()
+		for x in allData2.columns:
+			if x == 'fecha_dato' or x == 'ncodpers' or fits(x):
+				continue
+			del allData2[x]
 
-        print ('Dataframes made!')
-        print (allData.head())
+		print ('Dataframes made!')
+		print (allData.head())
 
-        allData2.rename(columns = lambda x: prevName(x), inplace = True)
+		allData2.rename(columns = lambda x: prevName(x), inplace = True)
 
-        print ('DF2 renamed!')
-        print (allData2.head())
+		print ('DF2 renamed!')
+		print (allData2.head())
 
-        a = set(allData['fecha_dato'])
-        allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
+		a = set(allData['fecha_dato'])
+		allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
 
-        print ('DF1 dates readjusted')
-        print ('Now merging...')
+		print ('DF1 dates readjusted')
+		print ('Now merging...')
 
-        retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
+		retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
+		retval['total_accounts_open'] = 0
+		for x in retval.columns:
+			if len(x) > 9 and x[:4] == 'ind_' and x[-5:] == '_prev':
+				retval['total_accounts_open'] = retval.total_accounts_open + retval[x]
 
-        return retval
+		return retval
 
 def cleanTrain(n = None):
 
-	print("Starting Cleaning Script!\n")
+		print("Starting Cleaning Script!\n")
+
 
 	if os.path.isfile('RawTrain.pickle'):
 		print ("Reading Training data...")
@@ -66,43 +76,67 @@ def cleanTrain(n = None):
 		print ("Reading Test data...")
 		pdtrain = pd.read_csv('./train_ver2.csv', delimiter = ',')
 
-	print ("done reading raw data!")
-	print ("Cleaning data...")
 
-	print (pdtrain.isnull().sum())
+		alldata = addFeatures([pdtrain, pdtest])
+		alldata['age'] = pd.to_numeric(alldata.age, errors = 'coerce')
+		alldata['antiguedad'] = pd.to_numeric(alldata.antiguedad, errors = 'coerce')
+		alldata['indrel_1mes'] = pd.to_numeric(alldata.indrel_1mes, errors = 'coerce')
+		alldata['conyuemp'].fillna(0, inplace = True)
+		alldata['ult_fec_cli_1t'].fillna(0, inplace = True)
+		alldata['tipodom'].fillna(0, inplace = True)
 
-	if not os.path.isfile('RawTrain.pickle'):
-		pdtrain = pdtrain[pdtrain['tipodom'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['ind_nomina_ult1'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['sexo'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['indrel_1mes'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['segmento'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['canal_entrada'].isnull() == False]
-		pdtrain = pdtrain[pdtrain['cod_prov'].isnull() == False]
+                for x in alldata.columns:
+                        print (x)
+                        if not fits(x):
+                                mean_x = alldata[x].mean()
+                                alldata[x].fillna(mean_x, inplace = True)
 
-		stillBad = pdtrain.isnull().sum()
+                #for x in alldata. 
 
-		for i in range(0, len(stillBad.index)):
-			if stillBad[i] > 0:
-				pdtrain = pdtrain.drop(stillBad.index[i], 1)
-				pdtest = pdtest.drop(stillBad.index[i], 1)
+		pdtrain = alldata[alldata.fecha_dato <> '2016-06-28']
+		pdtest = alldata[alldata.fecha_dato == '2016-06-28']
+		pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
+		#TODO: Why does this line drop everything?
+		pdtest = alldata.dropna(axis = 1, how = 'all')
 
-	print ("Data Clean!")
+		print ("done reading raw data!")
+		print ("Cleaning data...")
 
-	print ("Writing Data...")
+		print (pdtrain.isnull().sum())
 
-	if not os.path.isfile('RawTrain.pickle'):
-		pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
-		pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
+		if not os.path.isfile('RawTrain.pickle'):
+			pdtrain = pdtrain[pdtrain['tipodom'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['ind_nomina_ult1'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['sexo'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['indrel_1mes'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['segmento'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['canal_entrada'].isnull() == False]
+			pdtrain = pdtrain[pdtrain['cod_prov'].isnull() == False]
 
-	print ("pdtrain shape: ", pdtrain.shape)
-	print ("pdtest shape: ", pdtest.shape)
+			stillBad = pdtrain.isnull().sum()
 
-	print ("Cleaning script done!\n")
+			for i in range(0, len(stillBad.index)):
+				if stillBad[i] > 0:
+					pdtrain = pdtrain.drop(stillBad.index[i], 1)
+					pdtest = pdtest.drop(stillBad.index[i], 1)
 
+		print ("Data Clean!")
 
+		print ("Writing Data...")
+			
+		pdtrain = pdtrain.reset_index()
+		pdtest = pdtest.reset_index()
 
-	return [pdtrain, pdtest]
+		"""if not os.path.isfile('RawTrain.pickle'):
+			pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
+			pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))"""
+
+		#print ("pdtrain shape: ", pdtrain.shape)
+		#print ("pdtest shape: ", pdtest.shape)
+
+		print ("Cleaning script done!\n")
+
+		return [pdtrain, pdtest]
 
 def fits(c):
 	if len(c) > 8 and c[:4] == 'ind_' and c[-5:] == '_ult1':
@@ -144,7 +178,6 @@ def gen_classify_cv(reg,trainFeatures,trainTarget):
 		Target = trainTarget[target1][:sz]
 		print(len(Target))
 		print(len(trainFeatures))
-		#reg = model_method(class_weight = 'balanced')
 		reg.fit(trainFeatures, Target)
 
 		predictions.append(reg.predict(cvFeatures))
@@ -160,14 +193,28 @@ def gen_classify_cv(reg,trainFeatures,trainTarget):
 
 	return [predictions, All_Targets]
 
-def gen_classify_test(reg,trainFeatures,trainTarget,month):
+def replaceNanWithMean(matrix):
+	averages=matrix.mean()
+	for col in matrix.columns:
+		if col in averages.keys():
+			matrix[col].fillna(averages[col])
+
+def getPCAVariances(matrix):
+	pca=PCA()
+	pca.fit(matrix)
+	return pca.explained_variance_
+
+def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	trainingData=trainFeatures[trainFeatures.fecha_dato==month]
 	trainingLabels=trainTarget[trainFeatures.fecha_dato==(month)]
 	testingData=trainFeatures[trainFeatures.fecha_dato==(month+1)]
 	testingLabels=trainTarget[trainFeatures.fecha_dato==(month+1)]
 	predictions=[]
 	conf=[]
-
+	if(runPCA!=False):
+		pca=PCA(n_components=runPCA)
+		trainingData=pca.fit_transform(trainingData)
+		testingData=pca.fit_transform(testingData)
 	N=len(testingLabels.columns)
 	for i in range(0,N):
 		t1=(trainingLabels.columns[i])
@@ -188,9 +235,12 @@ def load_data():
 	train, test=cleanTrain()
 	trainFeatures, trainTarget=split(train)
 	digitizeMatrix(trainFeatures)
+	del trainFeatures['fecha_dato_prev']
+	trainFeatures = trainFeatures[trainFeatures['fecha_dato'] != 0]
 
 	return(trainFeatures,trainTarget,test)
 
 if __name__ == "__main__":
-		a = cleanTrain()
-		print (a[0].head())
+	data = load_data()
+	model = RandomForestClassifier(n_estimators = 50, class_weight = 'balanced', verbose = 1)
+	result = gen_classify_test(model, data[0], data[1], 5)
