@@ -179,11 +179,11 @@ def getPCAVariances(matrix):
 def getAcc(confs):
         acc = []
         truePos = []
-        
+
         for x in confs:
                 acc.append(float(x[0][0] + x[1][1])/(x[0][0] + x[0][1] + x[1][0] + x[1][1]))
                 truePos.append(float(x[1][1])/(x[1][0] + x[1][1]))
-        
+
         return [acc, truePos]
 
 def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
@@ -213,6 +213,25 @@ def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	print(average_precision.mapk(np.asarray(testingLabels),np.asarray(predictions)))
 	return [predictions,conf]
 
+def gen_classify_stack(predictionMat,trainFeatures,trainTarget,month):
+	actualMat=trainTarget[trainFeatures.fecha_dato==(month+1)]
+	conf=[]
+	N=len(actualMat.columns)
+	for i in range(0,N):
+		t1=actualMat.columns[i]
+		conf.append(confusion_matrix(actualMat[t1],predictionMat[:,i]))
+
+	at=plotAccTP(conf)
+	return (at,conf)
+
+def getWeights(accuracyMat):
+	b=accuracyMat.transpose()
+	c=[]
+	for i in range(len(b)):
+		c.append(np.asarray([float(x) for x in b[i]])/sum(b[i]))
+
+	return np.asarray(c).transpose()
+
 def get_Probs_Test(reg, trainFeatures, trainTarget, test, month = 15):
         N = len(trainTarget.columns)
         Features = trainFeatures[trainFeatures.fecha_dato == month]
@@ -227,7 +246,7 @@ def get_Probs_Test(reg, trainFeatures, trainTarget, test, month = 15):
                         predictions.append(reg.predict_proba(test))
                 else:
                         predictions.append(reg.predict_proba(tmptest))
-                        
+
 
         return predictions
 
@@ -247,7 +266,7 @@ def stack_models(NModels, preds, cutoff = 0.5, weights = None):
 
 	for i in range(0, NModels):
 		retval = retval + np.multiply(weights[i],preds[i])
-	
+
 	retval = np.array(retval)
 
 	for i in range(0, len(retval)):
@@ -256,9 +275,9 @@ def stack_models(NModels, preds, cutoff = 0.5, weights = None):
 				retval[i][j] = 1
 			else:
 				retval[i][j] = 0
-	
+
 	return retval.transpose()
-                
+
 
 """if (weights == None):
 
@@ -282,7 +301,7 @@ for i in range(0, NLabels):
                 newPreds[i] = 0"""
 
 
-        
+
 def plotAccTP(confMatricies):
 	accuracies=[]
 	truepositives=[]
