@@ -19,9 +19,9 @@ def cleanTrain(n = None):
         pdtest = pickle.load(open(r'RawTest.pickle','rb'))
     else:
         print ("Reading Training data...")
-        pdtest = pd.read_csv('../data/test_ver2.csv', delimiter = ',')
+        pdtest = pd.read_csv('test_ver2.csv/test_ver2.csv', delimiter = ',')
         print ("Reading Test data...")
-        pdtrain = pd.read_csv('../data/train_ver2.csv', delimiter = ',')
+        pdtrain = pd.read_csv('train_ver2.csv/train_ver2.csv', delimiter = ',')
 
     print ("done reading raw data!")
     print ("Cleaning data...")
@@ -52,8 +52,8 @@ def cleanTrain(n = None):
         pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
         pickle.dump(pdtest, open(r'RawTest.pickle', 'wb'))
 
-    print "pdtrain shape: ", pdtrain.shape    
-    print "pdtest shape: ", pdtest.shape    
+    #print "pdtrain shape: ", pdtrain.shape    
+    #print "pdtest shape: ", pdtest.shape    
         
     print ("Cleaning script done!\n")
 

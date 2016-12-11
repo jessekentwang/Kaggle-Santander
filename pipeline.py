@@ -5,10 +5,11 @@ import pickle
 from sklearn.metrics import confusion_matrix
 import average_precision
 import os
-from sklearn.ensemble import RandomForestClassifier
+import matplotlib.pyplot as plt
 from numpy.linalg import svd
 from sklearn import preprocessing
-import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.decomposition import PCA
 
 def prevDate(date, a):
 		if date.startswith('2015-01'):
@@ -52,7 +53,6 @@ def addFeatures(data):
 		print ('Now merging...')
 
 		retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
-
 		retval['total_accounts_open'] = 0
 		for x in retval.columns:
 			if len(x) > 9 and x[:4] == 'ind_' and x[-5:] == '_prev':
@@ -91,7 +91,7 @@ def cleanTrain(n = None):
 
                 #for x in alldata. 
 
-		pdtrain = alldata[alldata.fecha_dato != '2016-06-28']
+		pdtrain = alldata[alldata.fecha_dato <> '2016-06-28']
 		pdtest = alldata[alldata.fecha_dato == '2016-06-28']
 		pdtrain = pdtrain[pdtrain['ind_viv_fin_ult1_prev'].isnull() == False]
 		#TODO: Why does this line drop everything?
@@ -122,8 +122,8 @@ def cleanTrain(n = None):
 
 		print ("Writing Data...")
 			
-		#pdtrain = pdtrain.reset_index
-		#pdtest = pdtest.reset_index
+		pdtrain = pdtrain.reset_index()
+		pdtest = pdtest.reset_index()
 
 		"""if not os.path.isfile('RawTrain.pickle'):
 			pickle.dump(pdtrain, open(r'RawTrain.pickle', "wb"))
@@ -190,14 +190,28 @@ def gen_classify_cv(reg,trainFeatures,trainTarget):
 
 	return [predictions, All_Targets]
 
-def gen_classify_test(reg,trainFeatures,trainTarget,month):
+def replaceNanWithMean(matrix):
+	averages=matrix.mean()
+	for col in matrix.columns:
+		if col in averages.keys():
+			matrix[col].fillna(averages[col])
+
+def getPCAVariances(matrix):
+	pca=PCA()
+	pca.fit(matrix)
+	return pca.explained_variance_
+
+def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	trainingData=trainFeatures[trainFeatures.fecha_dato==month]
 	trainingLabels=trainTarget[trainFeatures.fecha_dato==(month)]
 	testingData=trainFeatures[trainFeatures.fecha_dato==(month+1)]
 	testingLabels=trainTarget[trainFeatures.fecha_dato==(month+1)]
 	predictions=[]
 	conf=[]
-
+	if(runPCA!=False):
+		pca=PCA(n_components=runPCA)
+		trainingData=pca.fit_transform(trainingData)
+		testingData=pca.fit_transform(testingData)
 	N=len(testingLabels.columns)
 	for i in range(0,N):
 		t1=(trainingLabels.columns[i])
@@ -227,4 +241,3 @@ if __name__ == "__main__":
 	data = load_data()
 	model = RandomForestClassifier(n_estimators = 50, class_weight = 'balanced', verbose = 1)
 	result = gen_classify_test(model, data[0], data[1], 5)
-

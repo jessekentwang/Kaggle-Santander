@@ -29,7 +29,7 @@ for i in range(0,N):
 
     Target = trainTarget[target1][:-6500000]
 
-    reg = svm.SVC(class_weight = 'balanced')
+    reg = svm.LinearSVC(class_weight = 'balanced')
     reg.fit(trainFeatures, Target)
 
     predictions = reg.predict(cvFeatures)
@@ -39,5 +39,5 @@ for i in range(0,N):
     print (target1)
     print (conf[i])
     print (classification_report(cvTarget, predictions))
-    print ('True positive rate is: ' + str((conf[i][1][1])/(conf[i][1][0] + conf[i][1][1])))
+    print ('True positive rate is: ' + str((conf[i][1][1])/float(conf[i][1][0] + conf[i][1][1])))
     print ('--------')

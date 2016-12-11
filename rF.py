@@ -28,7 +28,7 @@ for i in range(0,N):
 
     Target = trainTarget[target1][:-6500000]
 
-    reg = RandomForestClassifier(class_weight = 'balanced')
+    reg = RandomForestClassifier(class_weight = 'balanced', verbose = True)
     reg.fit(trainFeatures, Target)
 
     predictions = reg.predict(cvFeatures)
