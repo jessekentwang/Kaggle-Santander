@@ -5,51 +5,51 @@ import pickle
 from sklearn.metrics import confusion_matrix
 import average_precision
 import os
-
+from sklearn.decomposition import PCA
 def prevDate(date, a):
-        if date.startswith('2015-01'):
-                return None
-        elif date.startswith('2016-01'):
-                return next((x for x in a if x.startswith('2015-12')), None)
-        else:
-                ltmp = date[:5]
-                tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
-                return next((x for x in a if x.startswith(ltmp+tmp)), None)
+		if date.startswith('2015-01'):
+				return None
+		elif date.startswith('2016-01'):
+				return next((x for x in a if x.startswith('2015-12')), None)
+		else:
+				ltmp = date[:5]
+				tmp = (str(int(date[5:7]) - 1)).rjust(2, '0')
+				return next((x for x in a if x.startswith(ltmp+tmp)), None)
 
 def prevName(name):
-        if fits(name) or name == 'fecha_dato':
-                return name + '_prev'
-        else:
-                return name
+		if fits(name) or name == 'fecha_dato':
+				return name + '_prev'
+		else:
+				return name
 
 def addFeatures(data):
-        train = data[0]
-        test = data[1]
+		train = data[0]
+		test = data[1]
 
-        allData = pd.concat([train,test])
-        allData2 = allData.copy()
-        for x in allData2.columns:
-            if x == 'fecha_dato' or x == 'ncodpers' or fits(x):
-                continue
-            del allData2[x]
+		allData = pd.concat([train,test])
+		allData2 = allData.copy()
+		for x in allData2.columns:
+			if x == 'fecha_dato' or x == 'ncodpers' or fits(x):
+				continue
+			del allData2[x]
 
-        print ('Dataframes made!')
-        print (allData.head())
+		print ('Dataframes made!')
+		print (allData.head())
 
-        allData2.rename(columns = lambda x: prevName(x), inplace = True)
+		allData2.rename(columns = lambda x: prevName(x), inplace = True)
 
-        print ('DF2 renamed!')
-        print (allData2.head())
+		print ('DF2 renamed!')
+		print (allData2.head())
 
-        a = set(allData['fecha_dato'])
-        allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
+		a = set(allData['fecha_dato'])
+		allData['fecha_dato_prev'] = allData['fecha_dato'].apply(lambda x: prevDate(x, a))
 
-        print ('DF1 dates readjusted')
-        print ('Now merging...')
+		print ('DF1 dates readjusted')
+		print ('Now merging...')
 
-        retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
+		retval = pd.merge(allData, allData2, how = 'left', on = ['fecha_dato_prev', 'ncodpers'])
 
-        return retval
+		return retval
 
 def cleanTrain(n = None):
 
@@ -160,14 +160,28 @@ def gen_classify_cv(reg,trainFeatures,trainTarget):
 
 	return [predictions, All_Targets]
 
-def gen_classify_test(reg,trainFeatures,trainTarget,month):
+def replaceNanWithMean(matrix):
+	averages=matrix.mean()
+	for col in matrix.columns:
+		if col in averages.keys():
+			matrix[col].fillna(averages[col])
+
+def getPCAVariances(matrix):
+	pca=PCA()
+	pca.fit(matrix)
+	return pca.explained_variance_
+
+def gen_classify_test(reg,trainFeatures,trainTarget,month,runPCA=False):
 	trainingData=trainFeatures[trainFeatures.fecha_dato==month]
 	trainingLabels=trainTarget[trainFeatures.fecha_dato==(month)]
 	testingData=trainFeatures[trainFeatures.fecha_dato==(month+1)]
 	testingLabels=trainTarget[trainFeatures.fecha_dato==(month+1)]
 	predictions=[]
 	conf=[]
-
+	if(runPCA!=False):
+		pca=PCA(n_components=runPCA)
+		trainingData=pca.fit_transform(trainingData)
+		testingData=pca.fit_transform(testingData)
 	N=len(testingLabels.columns)
 	for i in range(0,N):
 		t1=(trainingLabels.columns[i])
