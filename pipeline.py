@@ -231,16 +231,48 @@ def get_Probs_Test(reg, trainFeatures, trainTarget, test, month = 15):
 
         return predictions
 
+def clean_Probs(probs):
+        for i in range(0, len(probs)):
+                probs[i] = probs[i].tolist()
+        for i in range(0, len(probs)):
+                for j in range(0, len(probs[i])):
+                        probs[i][j] = probs[i][j][1]
+        return np.array(probs)
 
-def stack_models(NModels, preds, cutoff = 0.5, weights = None):
+def get_Probs_from_csv(test = False):
+        pred = []
+        if test == False:
+                pred.append(np.loadtxt("GBMProbs5.csv", delimiter = ',').transpose())
+                pred.append(np.loadtxt("rFProbs5.csv", delimiter = ',').transpose())
+                pred.append(np.loadtxt("logprob5.csv", delimiter = ',').transpose())
+        else:
+                pred.append(np.loadtxt("GBMProbs.csv", delimiter = ',').transpose())
+                pred.append(np.loadtxt("rFProbs.csv", delimiter = ',').transpose())
+                pred.append(np.loadtxt("logprob.csv", delimiter = ',').transpose())
+
+        return pred
+
+def Prob_to_Pred(x, cutoff = 0.5):
+        x = np.array(x)
+
+        for i in range(0, len(x)):
+                for j in range(0, len(x[i])):
+                        if x[i][j] > cutoff:
+                                x[i][j] = 1
+                        else:
+                                x[i][j] = 0
+
+        return np.matrix(x)
+
+def stack_models(NModels, preds, NTargets = 24, cutoff = 0.5, weights = None):
 
 # preds is list of predictions for each model
 
 	if weights == None:
-		pass
+		weights = np.full((NModels, NTargets), 1.0/NModels)
 
 	for i in range(0, len(weights)):
-		weights[i] = np.matrix(weights[i])
+		weights[i] = np.array(weights[i])
 		preds[i] = np.matrix(preds[i])
 
 	retval = np.matrix(np.zeros(weights[0].shape))
