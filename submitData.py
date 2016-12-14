@@ -9,10 +9,11 @@ def getLastMonthData():
     trainingFeatures, trainTarget, test=pipeline.load_data()
     pipeline.digitizeMatrix(test)
     print("Finding last month account statuses")
-    lastMonthData=trainingFeatures[trainingFeatures.fecha_dato==16]
-    lastMonthLabels=trainTarget[trainingFeatures.fecha_dato==16]
-    lastMonthData= lastMonthData.groupby(lastMonthData.columns, axis = 1).transform(lambda x: x.fillna(x.mean()))
-    return (lastMonthData,lastMonthLabels)
+    lastMonthData=trainingFeatures[trainingFeatures.fecha_dato==15]
+    lastMonthLabels=trainTarget[trainingFeatures.fecha_dato==15]
+    #lastMonthData= lastMonthData.groupby(lastMonthData.columns, axis = 1).transform(lambda x: x.fillna(x.mean()))
+    lastMonthData=lastMonthData.fillna(lastMonthData.mean())
+    return (trainingFeatures,trainTarget,test,lastMonthData,lastMonthLabels)
 
 
 
@@ -25,11 +26,38 @@ def fitClassifier(trainingFeatures,trainTarget,test,clf=RandomForestClassifier(n
         t1=trainTarget.columns[i]
         print("Predicting "+t1)
         clf.fit(trainingFeatures,trainTarget[t1])
-        predictions.append(clf.predict(test))
+        p=clf.predict(test)
+        predictions.append(p)
+        print(len(p))
+        #predictions.append(np.ones(len(trainTarget[t1])))
     print("Done with classification.")
     predictions=np.asarray(predictions).transpose()
     print(predictions)
     return predictions
+
+
+def printSubmissionBad(test,trainTarget,lastMonthData,lastMonthLabels,predictions):
+    f=open('submission.csv','w')
+    f.write('ncodpers,added_products\n')
+    temp = lastMonthLabels.copy()
+    lastMonthLabels=np.asarray(lastMonthLabels)
+    for code in test.ncodpers:
+        ret=str(int(code))+', '
+        index_train=np.where(lastMonthData.ncodpers==code)[0]
+        index_test=np.where(test.ncodpers==code)[0]
+        if len(index_train)==0:
+            subtracted=predictions[index_test[0]]
+        else:
+            subtracted=predictions[index_test[0]]-lastMonthLabels[index_train[0]]
+        for j in range(len(subtracted)):
+            if subtracted[j]>0:
+
+                ret+=trainTarget.columns[j]+' '
+        f.write(ret)
+        #print(ret)
+
+    f.close()
+
 
 
 
@@ -50,7 +78,7 @@ def printSubmission(test,trainTarget,lastMonthData,lastMonthLabels,predictions):
     print(cols)
     temp.columns = cols
     print (temp.head())
-    predictions_frame = predictions_frame.merge(temp,how='left')
+    predictions_frame = predictions_frame.merge(temp,how='left',on='ncodpers')
     print("MERGED")
     print(predictions_frame.head())
     for w in lastMonthLabels.columns:
